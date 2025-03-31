@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>DevTech Academy - Sistema de Alunos</title>
+</head>
+<body>
+  <h1>Cadastro de Alunos</h1>
+  <form id="aluno-form">
+    <label>Nome: <input type="text" id="nome" required></label><br>
+    <label>Idade: <input type="number" id="idade" required></label><br>
+    <label>Curso: 
+      <select id="curso" required>
+        <option value="JavaScript">JavaScript</option>
+        <option value="Python">Python</option>
+        <option value="Java">Java</option>
+      </select>
+    </label><br>
+    <label>Nota Final: <input type="number" id="notaFinal" required></label><br>
+    <button type="submit">Cadastrar</button>
+  </form>
+
+  <h2>Lista de Alunos</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Idade</th>
+        <th>Curso</th>
+        <th>Nota Final</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="aluno-tbody"></tbody>
+  </table>
+
+  <h2>Relatórios</h2>
+  <button onclick="listarAprovados()">Alunos Aprovados</button>
+  <button onclick="mediaNotas()">Média das Notas</button>
+  <button onclick="mediaIdades()">Média das Idades</button>
+  <button onclick="ordenarPorNome()">Ordenar por Nome</button>
+  <button onclick="quantidadePorCurso()">Qtd por Curso</button>
+  <pre id="relatorio"></pre>
+
+  <script>
+    class Aluno {
+      constructor(nome, idade, curso, notaFinal) {
+        this.nome = nome;
+        this.idade = parseInt(idade);
+        this.curso = curso;
+        this.notaFinal = parseFloat(notaFinal);
+      }
+
+      isAprovado() {
+        return this.notaFinal >= 7;
+      }
+
+      toString() {
+        return `${this.nome} - ${this.curso} (${this.idade} anos) Nota: ${this.notaFinal}`;
+      }
+    }
+
+    let alunos = [];
+    let editIndex = null;
+
+    document.getElementById('aluno-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value;
+      const idade = document.getElementById('idade').value;
+      const curso = document.getElementById('curso').value;
+      const notaFinal = document.getElementById('notaFinal').value;
+
+      if (editIndex !== null) {
+        alunos[editIndex] = new Aluno(nome, idade, curso, notaFinal);
+        alert("Aluno editado com sucesso!");
+        editIndex = null;
+      } else {
+        alunos.push(new Aluno(nome, idade, curso, notaFinal));
+        alert("Aluno cadastrado com sucesso!");
+      }
+
+      this.reset();
+      renderTabela();
+    });
+
+    function renderTabela() {
+      const tbody = document.getElementById('aluno-tbody');
+      tbody.innerHTML = '';
+      alunos.forEach((aluno, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${aluno.nome}</td>
+          <td>${aluno.idade}</td>
+          <td>${aluno.curso}</td>
+          <td>${aluno.notaFinal}</td>
+          <td>
+            <button onclick="editarAluno(${index})">Editar</button>
+            <button onclick="excluirAluno(${index})">Excluir</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    const editarAluno = index => {
+      const aluno = alunos[index];
+      document.getElementById('nome').value = aluno.nome;
+      document.getElementById('idade').value = aluno.idade;
+      document.getElementById('curso').value = aluno.curso;
+      document.getElementById('notaFinal').value = aluno.notaFinal;
+      editIndex = index;
+    };
+
+    const excluirAluno = index => {
+      if (confirm("Deseja excluir este aluno?")) {
+        alunos.splice(index, 1);
+        alert("Aluno excluído!");
+        renderTabela();
+      }
+    };
+
+    const listarAprovados = () => {
+      const aprovados = alunos.filter(a => a.isAprovado());
+      document.getElementById('relatorio').textContent = aprovados.map(a => a.toString()).join('\n');
+    };
+
+    const mediaNotas = () => {
+      const media = alunos.reduce((acc, a) => acc + a.notaFinal, 0) / alunos.length || 0;
+      document.getElementById('relatorio').textContent = `Média das notas: ${media.toFixed(2)}`;
+    };
+
+    const mediaIdades = () => {
+      const media = alunos.reduce((acc, a) => acc + a.idade, 0) / alunos.length || 0;
+      document.getElementById('relatorio').textContent = `Média das idades: ${media.toFixed(2)}`;
+    };
+
+    const ordenarPorNome = () => {
+      const nomes = alunos.map(a => a.nome).sort();
+      document.getElementById('relatorio').textContent = `Nomes ordenados: \n${nomes.join('\n')}`;
+    };
+
+    const quantidadePorCurso = () => {
+      const contagem = {};
+      alunos.forEach(a => {
+        contagem[a.curso] = (contagem[a.curso] || 0) + 1;
+      });
+      const resultado = Object.entries(contagem).map(([curso, qtd]) => `${curso}: ${qtd}`).join('\n');
+      document.getElementById('relatorio').textContent = resultado;
+    };
+  </script>
+</body>
+</html>
